@@ -5,13 +5,13 @@ Babashka Streamable HTTP MCP server for the Podhome Integration API.
 ## Quick Start
 
 ```bash
-# Run
-bb podhome_mcp.bb
+# Run (OS-assigned port)
+PODHOME_API_KEY=your-key bb podhome_mcp.bb
 
-# Or with bb.edn tasks
-bb start      # Start on port 9999
-bb test       # Run tests
-bb health     # Health check
+# Or use bb.edn tasks
+bb start     # Start on port 9999
+bb test      # Run tests
+bb health    # Health check
 ```
 
 ## Configuration
@@ -31,7 +31,7 @@ Override API base URL:
 export PODHOME_API_BASE="https://serve.podhome.fm"
 ```
 
-## Tools
+## Available Tools (17)
 
 | Tool | Description |
 |------|-------------|
@@ -44,7 +44,7 @@ export PODHOME_API_BASE="https://serve.podhome.fm"
 | `delete-episode` | Delete episode |
 | `begin-upload` | Start file upload |
 | `finalize-upload` | Complete upload |
-| `upload-and-create` | Upload + create |
+| `upload-and-create` | Upload + create episode |
 | `create-chapter` | Add chapter |
 | `modify-chapter` | Update chapter |
 | `delete-chapter` | Delete chapter |
@@ -54,6 +54,12 @@ export PODHOME_API_BASE="https://serve.podhome.fm"
 | `delete-clip` | Delete clip |
 | `get-transcript` | Get transcript |
 | `get-analytics` | Get analytics |
+
+## Testing
+
+```bash
+PODHOME_API_KEY=your-key bb test
+```
 
 ## Nix
 
