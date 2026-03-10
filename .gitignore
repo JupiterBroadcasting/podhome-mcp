@@ -1,41 +1,13 @@
-# Dependencies
-node_modules/
-package-lock.json
-
-# Build output
-dist/
-build/
-*.tsbuildinfo
-
-# Environment files
-.env
-.env.local
-.env.*.local
-
 # Nix
 result/
-result
 
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Testing
-coverage/
-.nyc_output/
+# Environment
+.env
 
 # IDE
 .idea/
 .vscode/
 *.swp
-*.swo
-*~
-.DS_Store
 
-# Temporary files
-tmp/
-temp/
-*.tmp
+# OS
+.DS_Store
