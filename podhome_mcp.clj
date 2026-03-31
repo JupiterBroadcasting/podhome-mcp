@@ -678,3 +678,8 @@
     (log "info" "Server started" {:port port})
     (println (json/generate-string {:port port :status "ready"}))
     @(promise)))
+
+;; ─── Auto-invoke when run directly (not when loaded via load-file) ─────────
+
+(when (= *file* (System/getProperty "babashka.file"))
+  (-main))
