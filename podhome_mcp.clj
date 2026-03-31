@@ -1,15 +1,15 @@
 #!/usr/bin/env bb
-;; podhome_mcp.bb — Podhome MCP Server (Streamable HTTP)
+;; podhome_mcp.clj — Podhome MCP Server (Streamable HTTP)
 ;;
 ;; Serves the Podhome Integration API as an MCP server.
 ;; Transport: Streamable HTTP (single /mcp POST endpoint)
 ;; Auth: X-API-KEY header via PODHOME_API_KEY env var
 ;;
 ;; Usage:
-;;   PODHOME_API_KEY=your-key bb podhome_mcp.bb
+;;   PODHOME_API_KEY=your-key bb podhome_mcp.clj
 ;;
 ;; mcp-servers.edn entry:
-;;   {:podhome {:cmd ["bb" "/path/to/podhome_mcp.bb"]
+;;   {:podhome {:cmd ["bb" "/path/to/podhome_mcp.clj"]
 ;;              :env {"PODHOME_API_KEY" "your-key-here"}}}
 
 (ns podhome-mcp
@@ -670,9 +670,10 @@
 
 (defn -main [& _args]
   (let [port (or (some-> (System/getenv "PODHOME_MCP_PORT") Integer/parseInt) 0)
+        host (or (System/getenv "PODHOME_MCP_HOST") "127.0.0.1")
         srv (http/run-server
              (fn [req] (handler req))
-             {:port port :ip "127.0.0.1"})
+             {:port port :ip host})
         port (-> srv meta :local-port)]
     (log "info" "Server started" {:port port})
     (println (json/generate-string {:port port :status "ready"}))

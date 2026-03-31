@@ -11,7 +11,7 @@
          '[podhome-mcp :as podhome-mcp])
 
 (println "Loading podhome-mcp...")
-(load-file "podhome_mcp.bb")
+(load-file "podhome_mcp.clj")
 
 (def test-api-key (System/getenv "PODHOME_API_KEY"))
 (def test-port 0)

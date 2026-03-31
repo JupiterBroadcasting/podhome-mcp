@@ -10,7 +10,7 @@ During development of the podhome-mcp Babashka server, a test episode was accide
 
 ## Timeline
 
-1. Testing episode creation with the new `podhome_mcp.bb` (Babashka MCP server)
+1. Testing episode creation with the new `podhome_mcp.clj` (Babashka MCP server)
 2. Created episode with title "Test Episode from CLI" using a public test audio URL: `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3`
 3. Episode was created as draft
 4. Later ran schedule command with `--publish-now` flag

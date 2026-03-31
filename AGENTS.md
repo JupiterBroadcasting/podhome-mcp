@@ -15,13 +15,16 @@ A Babashka Streamable HTTP MCP server wrapping the Podhome Integration API.
 
 ```
 podhome-mcp/
-├── podhome_mcp.bb      # Single-file MCP server (the whole thing)
-├── bb.edn              # Tasks: run, start, test, health
-├── flake.nix           # Nix package
+├── podhome_mcp.clj     # Single-file MCP server (the whole thing)
+├── bb.edn              # Tasks: serve, run, start, test, lint, health
+├── flake.nix           # Nix flake + NixOS module
+├── CHANGELOG.md        # Release history
 ├── README.md           # Usage docs
-├── tests/
-│   └── test_podhome_mcp.clj  # Integration tests
-└── AGENTS.md          # This file
+├── AGENTS.md           # Agent instructions
+├── docs/
+│   └── BUG.md          # Bug reports
+└── tests/
+    └── test_podhome_mcp.clj  # Integration tests
 ```
 
 ## Philosophy

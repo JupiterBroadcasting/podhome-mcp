@@ -1,9 +1,11 @@
 {:paths ["."],
+ :deps {cheshire/cheshire {:mvn/version "5.13.0"}},
  :tasks
- {run
+ {serve
   {:doc "Start the Podhome MCP server (PODHOME_MCP_PORT env or OS-assigned)",
-   :task (shell "bb podhome_mcp.bb")},
- start
+   :task (shell "bb podhome_mcp.clj")},
+  run {:doc "Alias for serve", :override-builtin true, :task (run 'serve)},
+  start
   {:doc "Start on port 9999 (or PODHOME_MCP_PORT) for local dev",
    :task
    (shell
@@ -11,14 +13,14 @@
      (merge
       (into {} (System/getenv))
       {"PODHOME_MCP_PORT" (or (System/getenv "PODHOME_MCP_PORT") "9999")})}
-    "bb podhome_mcp.bb")},
- test
-  {:doc "Run integration tests (requires PODHOME_API_KEY env var)",
+    "bb podhome_mcp.clj")},
+  test
+  {:doc "Run integration tests (requires PODHOME_API_KEY)",
    :task (shell "bb tests/test_podhome_mcp.clj")},
- lint
+  lint
   {:doc "Lint with clj-kondo",
-   :task (shell "clj-kondo --lint podhome_mcp.bb")},
- health
+   :task (shell "clj-kondo --lint podhome_mcp.clj")},
+  health
   {:doc "Health check against running server (set PODHOME_MCP_PORT)",
    :task
    (shell

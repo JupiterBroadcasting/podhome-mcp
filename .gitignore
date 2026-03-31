@@ -4,6 +4,9 @@ result/
 # Environment
 .env
 
+# Tool state
+.clojure-mcp/
+
 # IDE
 .idea/
 .vscode/
