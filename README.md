@@ -37,7 +37,7 @@ export PODHOME_MCP_HOST="0.0.0.0"
 export PODHOME_MCP_PORT="3003"
 ```
 
-## Available Tools (17)
+## Available Tools (19)
 
 | Tool | Status | Description |
 |------|--------|-------------|

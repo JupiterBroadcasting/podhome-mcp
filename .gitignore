@@ -7,6 +7,7 @@ result/
 
 # Tool state
 .clojure-mcp/
+.clj-kondo/.cache/
 
 # IDE
 .idea/

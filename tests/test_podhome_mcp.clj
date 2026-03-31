@@ -5,10 +5,12 @@
 ;;
 ;; Run: cd podhome-mcp && PODHOME_API_KEY=your-key bb tests/test_podhome_mcp.clj
 
-(require '[org.httpkit.server :as http-server]
-         '[cheshire.core :as json]
-         '[babashka.http-client :as http-client]
-         '[podhome-mcp :as podhome-mcp])
+(ns test-podhome-mcp
+  {:clj-kondo/ignore [:duplicate-require :redefined-var]}
+  (:require [org.httpkit.server :as http-server]
+            [cheshire.core :as json]
+            [babashka.http-client :as http-client]
+            [podhome-mcp :as podhome-mcp]))
 
 (println "Loading podhome-mcp...")
 (load-file "podhome_mcp.clj")

@@ -17,6 +17,9 @@
   test
   {:doc "Run integration tests (requires PODHOME_API_KEY)",
    :task (shell "bb tests/test_podhome_mcp.clj")},
+  smoke
+  {:doc "Quick smoke test (no API key needed)",
+   :task (shell "bb tests/smoke_test.clj")},
   lint
   {:doc "Lint with clj-kondo",
    :task (shell "clj-kondo --lint podhome_mcp.clj")},
