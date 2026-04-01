@@ -37,24 +37,25 @@ export PODHOME_MCP_HOST="0.0.0.0"
 export PODHOME_MCP_PORT="3003"
 ```
 
-## Available Tools (19)
+## Available Tools (20)
 
 | Tool | Status | Description |
 |------|--------|-------------|
 | `get-show` | ✅ | Get show metadata |
-| `list-episodes` | ✅ | List episodes |
-| `get-episode` | ✅ | Get episode details |
+| `list-episodes` | ✅ | List episodes (paginated, 20 slim fields default, `fields="full"` for all) |
+| `get-episode` | ✅ | Get episode details (full) |
 | `create-episode` | ✅ | Create episode from URL |
-| `modify-episode` | ✅ | Update episode |
+| `modify-episode` | ✅ | Update episode (metadata + alternate enclosure) |
 | `schedule-episode` | ✅ | Schedule/publish |
 | `delete-episode` | ✅ | Delete episode |
-| `begin-upload` | ⚠️ | Start file upload (API bug — see Known Issues) |
+| `begin-upload` | ⚠️ | Start file upload (API bug — returns 400, use create-episode with file_url) |
 | `finalize-upload` | ⚠️ | Complete upload (depends on begin-upload) |
 | `upload-and-create` | ⚠️ | Upload + create episode (depends on begin-upload) |
+| `get-chapters` | ✅ | List chapters (paginated) |
 | `create-chapter` | ✅ | Add chapter |
 | `modify-chapter` | ✅ | Update chapter |
 | `delete-chapter` | ✅ | Delete chapter |
-| `list-clips` | ✅ | List clips |
+| `list-clips` | ✅ | List clips (paginated) |
 | `create-clip` | ✅ | Add clip |
 | `modify-clip` | ✅ | Update clip |
 | `delete-clip` | ✅ | Delete clip |
@@ -86,14 +87,15 @@ nix develop
 ## Testing
 
 ```bash
-PODHOME_API_KEY=your-key bb test
+bb smoke                    # Quick smoke test (no API key needed)
+PODHOME_API_KEY=your-key bb test  # Integration tests (real API)
 ```
 
 Tests call the real Podhome API — no mocks.
 
 ## Known Issues
 
-- **Upload API bug:** `/api/begin_upload` returns a 500 error due to a PascalCase vs snake_case mismatch in the Podhome API. Use `create-episode` with `file_url` as a workaround.
+- **Upload API bug:** `/api/begin_upload` returns HTTP 400 with error `'object' does not contain a definition for 'UploadUrl'`. This is a .NET PascalCase/snake_case deserialization bug on the server. Use `create-episode` with `file_url` as a workaround.
 
 - **MCP endpoint auth:** The MCP server at `serve.podhome.fm/api/mcp` only accepts OAuth, not `X-API-KEY`. This server uses the REST API directly.
 

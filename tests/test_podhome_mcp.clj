@@ -93,7 +93,14 @@
   (print "Testing list-episodes tool... ")
   (let [result (call-tool "list-episodes" {})]
     (if (nil? (get-in result [:error]))
-      (println "OK")
+      (let [data (get-in result [:result :content 0 :text])
+            parsed (json/parse-string data true)]
+        (if (and (contains? parsed :episodes)
+                 (contains? parsed :total)
+                 (contains? parsed :has_more)
+                 (<= (count (:episodes parsed)) 20))
+          (println "OK (" (count (:episodes parsed)) "/" (:total parsed) " slim)")
+          (println "FAIL - missing pagination fields or wrong limit:" (keys parsed))))
       (println "FAIL:" result))))
 
 (defn test-tools-list []

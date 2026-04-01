@@ -86,7 +86,7 @@
         tools (get-in resp [:result :tools])
         names (set (map :name tools))]
     (check "returns tools" (pos? (count tools)))
-    (check (str "tool count: " (count tools)) (= 19 (count tools)))
+    (check (str "tool count: " (count tools)) (= 20 (count tools)))
     (check "has get-show" (contains? names "get-show"))
     (check "has create-episode" (contains? names "create-episode"))
     (check "has get-transcript" (contains? names "get-transcript"))

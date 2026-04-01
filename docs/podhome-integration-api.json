@@ -1,0 +1,2946 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "Podhome Integration API",
+    "description": "### Overview\r\n\r\nThe Podhome Integration API lets you automate your podcast workflow programmatically.\r\n\r\n**Episodes**\r\n- Create, update, schedule, publish and delete episodes\r\n- Upload audio files via presigned URLs\r\n- Run Podhome AI (transcripts, chapters) and Audio Enhancement\r\n- Get episode details, processing status and download counts\r\n\r\n**Chapters, Clips & People**\r\n- Add, update and remove chapters from episodes\r\n- Create audio clips (soundbites) for promotion\r\n- Manage people and guests across your show\r\n\r\n**Transcripts**\r\n- Retrieve episode transcripts (with optional SRT format)\r\n\r\n**Analytics**\r\n- Get download counts, unique listeners, and follower metrics\r\n- Break down by podcast app, country, device, OS, and episode\r\n- View time-series trends for growth analysis\r\n\r\n**Webhooks**\r\n- Register, list and delete webhook subscriptions\r\n- Get notified when episodes are published or live sessions start\r\n\r\n**Show Info**\r\n- Retrieve show details and settings\r\n\r\n**AI Assistants (MCP)**\r\n- All of the above is also available through our [MCP server](https://www.podhome.fm/docs/mcp), which lets AI assistants like Claude manage your podcast through natural conversation.\r\n\r\n### Authentication\r\n\r\nPass your show API key in the `X-API-KEY` header. Find your key in show settings under Integration.\r\n\r\nQuestions? support@podhome.fm",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/analytics": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get Analytics",
+        "description": "Retrieve analytics data for your show or a specific episode.\r\n            \r\n**Overview** (no dimension or metric): Returns total downloads, unique listeners, and top episodes.\r\n            \r\n**Breakdown** (specify dimension): Returns data broken down by apps, countries, devices, os, time_of_day, or episodes.\r\n            \r\n**Trends** (specify metric): Returns time-series data for downloads or audience (unique listeners) over days, weeks, or months.",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "description": "Time period: 7d, 14d, 30d, 60d, 90d, 180d, 365d, or all. Default: 30d",
+            "schema": {
+              "type": "string",
+              "default": "30d"
+            }
+          },
+          {
+            "name": "episode_id",
+            "in": "query",
+            "description": "Optional episode ID (GUID) to filter to a specific episode.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dimension",
+            "in": "query",
+            "description": "Breakdown dimension: apps, countries, devices, os, time_of_day, or episodes.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "description": "Trend metric: downloads or audience.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "granularity",
+            "in": "query",
+            "description": "Trend granularity: days, weeks, or months. Default: days",
+            "schema": {
+              "type": "string",
+              "default": "days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Analytics data returned successfully."
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/chapters": {
+      "get": {
+        "tags": [
+          "Chapters"
+        ],
+        "summary": "Get Chapters",
+        "description": "Returns all chapters for a given episode.",
+        "parameters": [
+          {
+            "name": "episode_id",
+            "in": "query",
+            "description": "The episode Id to get chapters for.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetChapterResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "chapter_id": "c1d2e3f4-a5b6-7890-cdef-123456789012",
+                    "title": "Introduction",
+                    "start_time": 0,
+                    "description": "",
+                    "image_url": "",
+                    "url": ""
+                  },
+                  {
+                    "chapter_id": "d2e3f4a5-b6c7-8901-defa-234567890123",
+                    "title": "Main Topic Discussion",
+                    "start_time": 120.5,
+                    "description": "Deep dive into the topic",
+                    "image_url": "https://example.com/chapter-image.jpg",
+                    "url": "https://example.com/resources"
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/create_chapter": {
+      "post": {
+        "tags": [
+          "Chapters"
+        ],
+        "summary": "Create Chapter",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChapterRequest"
+              },
+              "example": {
+                "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                "title": "Introduction and Welcome",
+                "start_time": 0,
+                "description": "Opening remarks and guest introduction",
+                "image_url": "https://example.com/chapter-image.jpg",
+                "url": "https://example.com/resources"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateChapterResponse"
+                },
+                "example": {
+                  "chapter_id": "c1d2e3f4-a5b6-7890-cdef-123456789012"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateChapterResponse"
+                },
+                "example": {
+                  "chapter_id": "c1d2e3f4-a5b6-7890-cdef-123456789012"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateChapterResponse"
+                },
+                "example": {
+                  "chapter_id": "c1d2e3f4-a5b6-7890-cdef-123456789012"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/modify_chapter": {
+      "post": {
+        "tags": [
+          "Chapters"
+        ],
+        "summary": "Modify Chapter",
+        "description": "Updates an existing chapter. Only provided fields will be updated.",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifyChapterRequest"
+              },
+              "example": {
+                "chapter_id": "c1d2e3f4-a5b6-7890-cdef-123456789012",
+                "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                "title": "Updated Chapter Title",
+                "start_time": 15,
+                "description": "Updated description",
+                "image_url": "https://example.com/new-chapter-image.jpg"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifyChapterResponse"
+                },
+                "example": {
+                  "chapter_id": "c1d2e3f4-a5b6-7890-cdef-123456789012",
+                  "title": "Updated Chapter Title",
+                  "start_time": 15,
+                  "description": "Updated description",
+                  "image_url": "https://example.com/new-chapter-image.jpg",
+                  "url": ""
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifyChapterResponse"
+                },
+                "example": {
+                  "chapter_id": "c1d2e3f4-a5b6-7890-cdef-123456789012",
+                  "title": "Updated Chapter Title",
+                  "start_time": 15,
+                  "description": "Updated description",
+                  "image_url": "https://example.com/new-chapter-image.jpg",
+                  "url": ""
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifyChapterResponse"
+                },
+                "example": {
+                  "chapter_id": "c1d2e3f4-a5b6-7890-cdef-123456789012",
+                  "title": "Updated Chapter Title",
+                  "start_time": 15,
+                  "description": "Updated description",
+                  "image_url": "https://example.com/new-chapter-image.jpg",
+                  "url": ""
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/delete_chapter": {
+      "post": {
+        "tags": [
+          "Chapters"
+        ],
+        "summary": "Delete Chapter",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteChapterRequest"
+              },
+              "example": {
+                "chapter_id": "c1d2e3f4-a5b6-7890-cdef-123456789012",
+                "episode_id": "123e4567-e89b-12d3-a456-426614174000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chapter successfully deleted."
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/createclip": {
+      "post": {
+        "tags": [
+          "Clips (SoundBites)"
+        ],
+        "summary": "Create Clip",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateClipRequest"
+              },
+              "example": {
+                "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                "title": "Introduction of Brain and the art of Podcasting",
+                "start_time": 30.5,
+                "duration": 15
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateClipResponse"
+                },
+                "example": {
+                  "clip_id": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateClipResponse"
+                },
+                "example": {
+                  "clip_id": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateClipResponse"
+                },
+                "example": {
+                  "clip_id": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/clips": {
+      "get": {
+        "tags": [
+          "Clips (SoundBites)"
+        ],
+        "summary": "Get Clips",
+        "description": "Returns all clips (soundbites) for a given episode.",
+        "parameters": [
+          {
+            "name": "episode_id",
+            "in": "query",
+            "description": "The episode Id to get clips for.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetClipResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "clip_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "title": "Introduction highlight",
+                    "start_time": 30.5,
+                    "duration": 15
+                  },
+                  {
+                    "clip_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+                    "title": "Key insight about podcasting",
+                    "start_time": 125,
+                    "duration": 45
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/modify_clip": {
+      "post": {
+        "tags": [
+          "Clips (SoundBites)"
+        ],
+        "summary": "Modify Clip",
+        "description": "Updates an existing clip. Only provided fields will be updated.",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifyClipRequest"
+              },
+              "example": {
+                "clip_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                "title": "Updated clip title",
+                "start_time": 45,
+                "duration": 20
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifyClipResponse"
+                },
+                "example": {
+                  "clip_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                  "title": "Updated clip title",
+                  "start_time": 45,
+                  "duration": 20
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifyClipResponse"
+                },
+                "example": {
+                  "clip_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                  "title": "Updated clip title",
+                  "start_time": 45,
+                  "duration": 20
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifyClipResponse"
+                },
+                "example": {
+                  "clip_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                  "title": "Updated clip title",
+                  "start_time": 45,
+                  "duration": 20
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/delete_clip": {
+      "post": {
+        "tags": [
+          "Clips (SoundBites)"
+        ],
+        "summary": "Delete Clip",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteClipRequest"
+              },
+              "example": {
+                "clip_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                "episode_id": "123e4567-e89b-12d3-a456-426614174000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Clip successfully deleted."
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/createepisode": {
+      "post": {
+        "tags": [
+          "Episodes"
+        ],
+        "summary": "Create new Episode",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEpisodeRequest"
+              },
+              "example": {
+                "file_url": "https://publicallyaccessibleurl.mp3",
+                "title": "My New Podhome episode",
+                "description": "This is an optional description.",
+                "link": "https://example.com/episode-page",
+                "publish_date": "2025-07-20T10:00:00Z",
+                "use_podhome_ai": false,
+                "suggest_chapters": false,
+                "suggest_details": true,
+                "suggest_clips": false,
+                "enhance_audio": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateEpisodeResponse"
+                },
+                "example": {
+                  "episodeId": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateEpisodeResponse"
+                },
+                "example": {
+                  "episodeId": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateEpisodeResponse"
+                },
+                "example": {
+                  "episodeId": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/episodes": {
+      "get": {
+        "tags": [
+          "Episodes"
+        ],
+        "summary": "Get Episodes",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Optional status filter. Allowed values: 0 = Draft, 1 = Scheduled, 2 = Published, 3 = LivePending, 4 = Live, 5 = LiveEnded",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "includeTranscript",
+            "in": "query",
+            "description": "Optional. When true the response will include one transcript per episode (prefer SRT if available).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "includeChapters",
+            "in": "query",
+            "description": "Optional. When true the response will include chapters for each episode.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "includeDownloads",
+            "in": "query",
+            "description": "Optional. When true the response will include the all-time downloads for each episode.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "includePeople",
+            "in": "query",
+            "description": "Optional. When true the response will include people each episode.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetEpisodeResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                    "publish_date": "2025-07-20T10:00:00Z",
+                    "status": "2",
+                    "title": "Inside Evergreen Podcasts: A Conversation with David Allen Moss",
+                    "description": "Welcome to another episode of About Podcasting. This week, I had the pleasure of speaking with David Allen Moss from Evergreen Podcasts. Evergreen is a premier podcast network with over 350 shows, and David shared insights into what a podcast network actually is, what they do for podcasters, and how they operate. We delved into the history of Evergreen, from its beginnings as Front Porch People to its current status, and discussed the types of content they produce, including originals, branded content, and partner shows.\n\nDavid explained the passion behind Evergreen, emphasizing their love for storytelling and the diverse backgrounds of their team members, which include writers, creative directors, and musicians. We also touched on the importance of community in podcasting and how Evergreen fosters a collaborative and supportive environment.\n\nWe explored the services Evergreen provides to podcasters, such as hosting, analytics, ad management, and marketing support. David highlighted the custom relationships they build with their partners, helping them grow and monetize their shows.\n\nAdditionally, we discussed the evolving landscape of podcasting, including the rise of podcasting 2.0 and the importance of staying nimble and innovative. David shared Evergreen's future plans, including potential global expansion and continued growth in sales and partnerships.\n\nFor more information about Evergreen Podcasts, visit evergreenpodcasts.com or find them on social media at @streamevergreen. You can also connect with David Allen Moss on LinkedIn.\n\n",
+                    "episode_nr": 22,
+                    "season_nr": 1,
+                    "duration": "02:39:53",
+                    "enclosure_url": "https://op3.dev/e/serve.podhome.fm/episode/677e5bd6-598f-4522-1134-08dbdac63cde/63863146151315468694bb7b45-4143-424b-a98b-9d56d602bb95v3.mp3",
+                    "link": "https://www.aboutpodcasting.show/episodepage/inside-evergreen-podcasts-a-conversation-with-david-allen-moss",
+                    "image_url": "https://assets.podhome.fm/677e5bd6-598f-4522-1134-08dbdac63cde/638470582873058008About Podcasting - Podcast Cover.jpg",
+                    "episode_type": "0",
+                    "downloads": 698,
+                    "chapters": [
+                      {
+                        "start_time": 20,
+                        "image_url": "https://media.rssblue.com/podcasts/breathe/cover-art.breathe.jpg",
+                        "title": "Introduction to Podcasting Basics"
+                      },
+                      {
+                        "start_time": 63,
+                        "image_url": "",
+                        "title": "Interviews and Industry Insights"
+                      },
+                      {
+                        "start_time": 989,
+                        "image_url": "https://media.rssblue.com/podcasts/breathe/cover-art.breathe.jpg",
+                        "title": "Breathe"
+                      }
+                    ],
+                    "transcript": null
+                  },
+                  {
+                    "episode_id": "789e0123-e89b-12d3-a456-426614174002",
+                    "publish_date": null,
+                    "status": "0",
+                    "title": "The Essentials of Podcasting: Directories, Apps, and Hosts",
+                    "description": "",
+                    "episode_nr": 1,
+                    "season_nr": 6,
+                    "duration": "",
+                    "enclosure_url": "",
+                    "link": "",
+                    "image_url": "https://assets.podhome.fm/677e5bd6-598f-4522-1134-08dbdac63cde/638470582873058008About Podcasting - Podcast Cover.jpg",
+                    "episode_type": "2",
+                    "downloads": null,
+                    "chapters": null,
+                    "transcript": [
+                      {
+                        "language": "en-us",
+                        "transcript_url": "https://assets.podhome.fm/677e5bd6-598f-4522-1134-08dbdac63cde/94bb7b45-4143-424b-a98b-9d56d602bb95638633719702021968.srt"
+                      }
+                    ],
+                    "people": [
+                      {
+                        "name": "Nick",
+                        "image": "https://assets.podhome.fm/24263e26-0aa8-432a-467a-08dc1370a35c/638542321604734457kFB9I0qc_400x400.jpg",
+                        "description": "Nick is a podcast enthusiast and host of About Podcasting. With a passion for storytelling and audio content, Nick brings insightful conversations and expert advice to aspiring podcasters.",
+                        "url": "https://twitter.com/nickpodhome",
+                        "role": "guest"
+                      },
+                      {
+                        "name": "Barry",
+                        "image": "https://assets.podhome.fm/24263e26-0aa8-432a-467a-08dc1370a35c/638406686777583900menzkphd_400x400.jpg",
+                        "description": "",
+                        "url": "",
+                        "role": "host"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetEpisodeResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                    "publish_date": "2025-07-20T10:00:00Z",
+                    "status": "2",
+                    "title": "Inside Evergreen Podcasts: A Conversation with David Allen Moss",
+                    "description": "Welcome to another episode of About Podcasting. This week, I had the pleasure of speaking with David Allen Moss from Evergreen Podcasts. Evergreen is a premier podcast network with over 350 shows, and David shared insights into what a podcast network actually is, what they do for podcasters, and how they operate. We delved into the history of Evergreen, from its beginnings as Front Porch People to its current status, and discussed the types of content they produce, including originals, branded content, and partner shows.\n\nDavid explained the passion behind Evergreen, emphasizing their love for storytelling and the diverse backgrounds of their team members, which include writers, creative directors, and musicians. We also touched on the importance of community in podcasting and how Evergreen fosters a collaborative and supportive environment.\n\nWe explored the services Evergreen provides to podcasters, such as hosting, analytics, ad management, and marketing support. David highlighted the custom relationships they build with their partners, helping them grow and monetize their shows.\n\nAdditionally, we discussed the evolving landscape of podcasting, including the rise of podcasting 2.0 and the importance of staying nimble and innovative. David shared Evergreen's future plans, including potential global expansion and continued growth in sales and partnerships.\n\nFor more information about Evergreen Podcasts, visit evergreenpodcasts.com or find them on social media at @streamevergreen. You can also connect with David Allen Moss on LinkedIn.\n\n",
+                    "episode_nr": 22,
+                    "season_nr": 1,
+                    "duration": "02:39:53",
+                    "enclosure_url": "https://op3.dev/e/serve.podhome.fm/episode/677e5bd6-598f-4522-1134-08dbdac63cde/63863146151315468694bb7b45-4143-424b-a98b-9d56d602bb95v3.mp3",
+                    "link": "https://www.aboutpodcasting.show/episodepage/inside-evergreen-podcasts-a-conversation-with-david-allen-moss",
+                    "image_url": "https://assets.podhome.fm/677e5bd6-598f-4522-1134-08dbdac63cde/638470582873058008About Podcasting - Podcast Cover.jpg",
+                    "episode_type": "0",
+                    "downloads": 698,
+                    "chapters": [
+                      {
+                        "start_time": 20,
+                        "image_url": "https://media.rssblue.com/podcasts/breathe/cover-art.breathe.jpg",
+                        "title": "Introduction to Podcasting Basics"
+                      },
+                      {
+                        "start_time": 63,
+                        "image_url": "",
+                        "title": "Interviews and Industry Insights"
+                      },
+                      {
+                        "start_time": 989,
+                        "image_url": "https://media.rssblue.com/podcasts/breathe/cover-art.breathe.jpg",
+                        "title": "Breathe"
+                      }
+                    ],
+                    "transcript": null
+                  },
+                  {
+                    "episode_id": "789e0123-e89b-12d3-a456-426614174002",
+                    "publish_date": null,
+                    "status": "0",
+                    "title": "The Essentials of Podcasting: Directories, Apps, and Hosts",
+                    "description": "",
+                    "episode_nr": 1,
+                    "season_nr": 6,
+                    "duration": "",
+                    "enclosure_url": "",
+                    "link": "",
+                    "image_url": "https://assets.podhome.fm/677e5bd6-598f-4522-1134-08dbdac63cde/638470582873058008About Podcasting - Podcast Cover.jpg",
+                    "episode_type": "2",
+                    "downloads": null,
+                    "chapters": null,
+                    "transcript": [
+                      {
+                        "language": "en-us",
+                        "transcript_url": "https://assets.podhome.fm/677e5bd6-598f-4522-1134-08dbdac63cde/94bb7b45-4143-424b-a98b-9d56d602bb95638633719702021968.srt"
+                      }
+                    ],
+                    "people": [
+                      {
+                        "name": "Nick",
+                        "image": "https://assets.podhome.fm/24263e26-0aa8-432a-467a-08dc1370a35c/638542321604734457kFB9I0qc_400x400.jpg",
+                        "description": "Nick is a podcast enthusiast and host of About Podcasting. With a passion for storytelling and audio content, Nick brings insightful conversations and expert advice to aspiring podcasters.",
+                        "url": "https://twitter.com/nickpodhome",
+                        "role": "guest"
+                      },
+                      {
+                        "name": "Barry",
+                        "image": "https://assets.podhome.fm/24263e26-0aa8-432a-467a-08dc1370a35c/638406686777583900menzkphd_400x400.jpg",
+                        "description": "",
+                        "url": "",
+                        "role": "host"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetEpisodeResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                    "publish_date": "2025-07-20T10:00:00Z",
+                    "status": "2",
+                    "title": "Inside Evergreen Podcasts: A Conversation with David Allen Moss",
+                    "description": "Welcome to another episode of About Podcasting. This week, I had the pleasure of speaking with David Allen Moss from Evergreen Podcasts. Evergreen is a premier podcast network with over 350 shows, and David shared insights into what a podcast network actually is, what they do for podcasters, and how they operate. We delved into the history of Evergreen, from its beginnings as Front Porch People to its current status, and discussed the types of content they produce, including originals, branded content, and partner shows.\n\nDavid explained the passion behind Evergreen, emphasizing their love for storytelling and the diverse backgrounds of their team members, which include writers, creative directors, and musicians. We also touched on the importance of community in podcasting and how Evergreen fosters a collaborative and supportive environment.\n\nWe explored the services Evergreen provides to podcasters, such as hosting, analytics, ad management, and marketing support. David highlighted the custom relationships they build with their partners, helping them grow and monetize their shows.\n\nAdditionally, we discussed the evolving landscape of podcasting, including the rise of podcasting 2.0 and the importance of staying nimble and innovative. David shared Evergreen's future plans, including potential global expansion and continued growth in sales and partnerships.\n\nFor more information about Evergreen Podcasts, visit evergreenpodcasts.com or find them on social media at @streamevergreen. You can also connect with David Allen Moss on LinkedIn.\n\n",
+                    "episode_nr": 22,
+                    "season_nr": 1,
+                    "duration": "02:39:53",
+                    "enclosure_url": "https://op3.dev/e/serve.podhome.fm/episode/677e5bd6-598f-4522-1134-08dbdac63cde/63863146151315468694bb7b45-4143-424b-a98b-9d56d602bb95v3.mp3",
+                    "link": "https://www.aboutpodcasting.show/episodepage/inside-evergreen-podcasts-a-conversation-with-david-allen-moss",
+                    "image_url": "https://assets.podhome.fm/677e5bd6-598f-4522-1134-08dbdac63cde/638470582873058008About Podcasting - Podcast Cover.jpg",
+                    "episode_type": "0",
+                    "downloads": 698,
+                    "chapters": [
+                      {
+                        "start_time": 20,
+                        "image_url": "https://media.rssblue.com/podcasts/breathe/cover-art.breathe.jpg",
+                        "title": "Introduction to Podcasting Basics"
+                      },
+                      {
+                        "start_time": 63,
+                        "image_url": "",
+                        "title": "Interviews and Industry Insights"
+                      },
+                      {
+                        "start_time": 989,
+                        "image_url": "https://media.rssblue.com/podcasts/breathe/cover-art.breathe.jpg",
+                        "title": "Breathe"
+                      }
+                    ],
+                    "transcript": null
+                  },
+                  {
+                    "episode_id": "789e0123-e89b-12d3-a456-426614174002",
+                    "publish_date": null,
+                    "status": "0",
+                    "title": "The Essentials of Podcasting: Directories, Apps, and Hosts",
+                    "description": "",
+                    "episode_nr": 1,
+                    "season_nr": 6,
+                    "duration": "",
+                    "enclosure_url": "",
+                    "link": "",
+                    "image_url": "https://assets.podhome.fm/677e5bd6-598f-4522-1134-08dbdac63cde/638470582873058008About Podcasting - Podcast Cover.jpg",
+                    "episode_type": "2",
+                    "downloads": null,
+                    "chapters": null,
+                    "transcript": [
+                      {
+                        "language": "en-us",
+                        "transcript_url": "https://assets.podhome.fm/677e5bd6-598f-4522-1134-08dbdac63cde/94bb7b45-4143-424b-a98b-9d56d602bb95638633719702021968.srt"
+                      }
+                    ],
+                    "people": [
+                      {
+                        "name": "Nick",
+                        "image": "https://assets.podhome.fm/24263e26-0aa8-432a-467a-08dc1370a35c/638542321604734457kFB9I0qc_400x400.jpg",
+                        "description": "Nick is a podcast enthusiast and host of About Podcasting. With a passion for storytelling and audio content, Nick brings insightful conversations and expert advice to aspiring podcasters.",
+                        "url": "https://twitter.com/nickpodhome",
+                        "role": "guest"
+                      },
+                      {
+                        "name": "Barry",
+                        "image": "https://assets.podhome.fm/24263e26-0aa8-432a-467a-08dc1370a35c/638406686777583900menzkphd_400x400.jpg",
+                        "description": "",
+                        "url": "",
+                        "role": "host"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/schedule_episode": {
+      "post": {
+        "tags": [
+          "Episodes"
+        ],
+        "summary": "Schedule or publish an Episode",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleEpisodeRequest"
+              },
+              "example": {
+                "episodeId": "123e4567-e89b-12d3-a456-426614174000",
+                "publish_now": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleEpisodeResponse"
+                },
+                "example": {
+                  "episodeId": "123e4567-e89b-12d3-a456-426614174000",
+                  "publish_date": "2025-07-20T10:00:00Z",
+                  "status": "2"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleEpisodeResponse"
+                },
+                "example": {
+                  "episodeId": "123e4567-e89b-12d3-a456-426614174000",
+                  "publish_date": "2025-07-20T10:00:00Z",
+                  "status": "2"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleEpisodeResponse"
+                },
+                "example": {
+                  "episodeId": "123e4567-e89b-12d3-a456-426614174000",
+                  "publish_date": "2025-07-20T10:00:00Z",
+                  "status": "2"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/modify_episode": {
+      "post": {
+        "tags": [
+          "Episodes"
+        ],
+        "summary": "Modify Episode",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifyEpisodeRequest"
+              },
+              "example": {
+                "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                "title": "Updated Episode Title",
+                "description": "<p>This is an updated description with <strong>HTML formatting</strong>.</p>",
+                "episode_nr": 42,
+                "season_nr": 2,
+                "image_url": "https://example.com/new-episode-image.jpg"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifyEpisodeResponse"
+                },
+                "example": {
+                  "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                  "title": "Updated Episode Title",
+                  "description": "This is an updated description with HTML formatting.",
+                  "episode_nr": 42,
+                  "season_nr": 2,
+                  "image_url": "https://assets.podhome.fm/account-id/638123456789012345episode-image.jpg"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifyEpisodeResponse"
+                },
+                "example": {
+                  "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                  "title": "Updated Episode Title",
+                  "description": "This is an updated description with HTML formatting.",
+                  "episode_nr": 42,
+                  "season_nr": 2,
+                  "image_url": "https://assets.podhome.fm/account-id/638123456789012345episode-image.jpg"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModifyEpisodeResponse"
+                },
+                "example": {
+                  "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                  "title": "Updated Episode Title",
+                  "description": "This is an updated description with HTML formatting.",
+                  "episode_nr": 42,
+                  "season_nr": 2,
+                  "image_url": "https://assets.podhome.fm/account-id/638123456789012345episode-image.jpg"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/delete_episode": {
+      "post": {
+        "tags": [
+          "Episodes"
+        ],
+        "summary": "Delete Episode",
+        "description": "Permanently deletes an episode. This cannot be undone. If the episode was published, it will be removed from the RSS feed.",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteEpisodeRequest"
+              },
+              "example": {
+                "episode_id": "123e4567-e89b-12d3-a456-426614174000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Episode successfully deleted."
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/episode": {
+      "get": {
+        "tags": [
+          "Episodes"
+        ],
+        "summary": "Get Episode",
+        "description": "Returns a single episode with full details including chapters, clips, processing status and download count.\r\nUseful for polling the status of a newly created episode.",
+        "parameters": [
+          {
+            "name": "episode_id",
+            "in": "query",
+            "description": "The episode Id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSingleEpisodeResponse"
+                },
+                "example": {
+                  "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                  "publish_date": "2025-07-20T10:00:00Z",
+                  "status": "0",
+                  "title": "My Draft Episode",
+                  "description": "Episode description here.",
+                  "episode_nr": 1,
+                  "season_nr": 1,
+                  "duration": "00:45:30",
+                  "enclosure_url": "",
+                  "link": "",
+                  "image_url": "https://assets.podhome.fm/account/show-image.jpg",
+                  "episode_type": "0",
+                  "alternate_enclosure_url": null,
+                  "alternate_enclosure_type": null,
+                  "downloads": 0,
+                  "processing_status": "complete",
+                  "chapters": [
+                    {
+                      "chapter_id": "c1d2e3f4-a5b6-7890-cdef-123456789012",
+                      "title": "Introduction",
+                      "start_time": 0
+                    }
+                  ],
+                  "clips": [
+                    {
+                      "clip_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                      "title": "Best moment",
+                      "start_time": 120.5,
+                      "duration": 30
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/begin_upload": {
+      "post": {
+        "tags": [
+          "Episodes"
+        ],
+        "summary": "Begin direct file upload",
+        "description": "Returns a presigned upload URL. Upload the file via HTTP PUT to the returned URL, then call finalize_upload.\r\nThe upload URL is valid for 2 hours. The file is uploaded directly to storage — it does not pass through the Podhome API.",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeginUploadRequest"
+              },
+              "example": {
+                "title": "My New Episode",
+                "file_name": "recording.mp3",
+                "file_size": 52428800,
+                "description": "An optional description.",
+                "enhance_audio": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeginUploadResponse"
+                },
+                "example": {
+                  "upload_url": "https://podhomestorage.blob.core.windows.net/episodes/638789012345678901234-...mp3?sv=2024-11-04&se=2026-03-01T14%3A00%3A00Z&sr=b&sp=cw&sig=...",
+                  "blob_name": "638789012345678901234episode-guid.mp3",
+                  "episode_id": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeginUploadResponse"
+                },
+                "example": {
+                  "upload_url": "https://podhomestorage.blob.core.windows.net/episodes/638789012345678901234-...mp3?sv=2024-11-04&se=2026-03-01T14%3A00%3A00Z&sr=b&sp=cw&sig=...",
+                  "blob_name": "638789012345678901234episode-guid.mp3",
+                  "episode_id": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeginUploadResponse"
+                },
+                "example": {
+                  "upload_url": "https://podhomestorage.blob.core.windows.net/episodes/638789012345678901234-...mp3?sv=2024-11-04&se=2026-03-01T14%3A00%3A00Z&sr=b&sp=cw&sig=...",
+                  "blob_name": "638789012345678901234episode-guid.mp3",
+                  "episode_id": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/finalize_upload": {
+      "post": {
+        "tags": [
+          "Episodes"
+        ],
+        "summary": "Finalize direct file upload",
+        "description": "Call this after you have successfully uploaded the file to the presigned URL returned by begin_upload.\r\nThis triggers audio processing, transcription, and other configured features.",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalizeUploadRequest"
+              },
+              "example": {
+                "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                "blob_name": "638789012345678901234episode-guid.mp3",
+                "file_size": 52428800,
+                "use_podhome_ai": false,
+                "suggest_chapters": false,
+                "suggest_details": false,
+                "suggest_clips": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinalizeUploadResponse"
+                },
+                "example": {
+                  "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                  "status": "processing"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinalizeUploadResponse"
+                },
+                "example": {
+                  "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                  "status": "processing"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinalizeUploadResponse"
+                },
+                "example": {
+                  "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                  "status": "processing"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/people": {
+      "get": {
+        "tags": [
+          "People"
+        ],
+        "summary": "Get People",
+        "description": "Returns all people (hosts, guests, etc.) assigned to an episode.",
+        "parameters": [
+          {
+            "name": "episode_id",
+            "in": "query",
+            "description": "The episode Id to get people for.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetPeopleResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "person_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "name": "Jane Smith",
+                    "role": "guest",
+                    "image_url": "https://example.com/jane.jpg",
+                    "description": "Tech podcaster and author",
+                    "link_url": "https://janesmith.com",
+                    "status": "confirmed"
+                  },
+                  {
+                    "person_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+                    "name": "Barry Luijbregts",
+                    "role": "host",
+                    "image_url": "https://example.com/barry.jpg",
+                    "description": "",
+                    "link_url": "",
+                    "status": "confirmed"
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/add_person": {
+      "post": {
+        "tags": [
+          "People"
+        ],
+        "summary": "Add Person to Episode",
+        "description": "Adds a person (host, guest, etc.) to an episode. If a person with the same name already exists they will be reused.",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPersonRequest"
+              },
+              "example": {
+                "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                "name": "Jane Smith",
+                "role": "guest",
+                "image_url": "https://example.com/jane.jpg",
+                "description": "Tech podcaster and author",
+                "link_url": "https://janesmith.com"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddPersonResponse"
+                },
+                "example": {
+                  "person_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                  "name": "Jane Smith",
+                  "role": "guest"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddPersonResponse"
+                },
+                "example": {
+                  "person_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                  "name": "Jane Smith",
+                  "role": "guest"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddPersonResponse"
+                },
+                "example": {
+                  "person_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                  "name": "Jane Smith",
+                  "role": "guest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/remove_person": {
+      "post": {
+        "tags": [
+          "People"
+        ],
+        "summary": "Remove Person from Episode",
+        "description": "Removes a person from an episode. The person record itself is not deleted — only the link to this episode is removed.",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemovePersonRequest"
+              },
+              "example": {
+                "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                "person_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Person successfully removed from episode."
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/show": {
+      "get": {
+        "tags": [
+          "Show"
+        ],
+        "summary": "Get Show Info",
+        "description": "Returns basic metadata about the show associated with the API key.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetShowResponse"
+                },
+                "example": {
+                  "show_id": "677e5bd6-598f-4522-1134-08dbdac63cde",
+                  "title": "About Podcasting",
+                  "description": "A podcast about podcasting, hosted by Barry and Nick.",
+                  "image_url": "https://assets.podhome.fm/677e5bd6-598f-4522-1134-08dbdac63cde/638470582873058008About Podcasting - Podcast Cover.jpg",
+                  "author": "Barry Luijbregts",
+                  "language": "en",
+                  "category": "Technology",
+                  "website": "https://www.aboutpodcasting.show",
+                  "rss_feed_url": "https://serve.podhome.fm/rss/677e5bd6-598f-4522-1134-08dbdac63cde",
+                  "is_explicit": false,
+                  "medium": "podcast"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing."
+          }
+        }
+      }
+    },
+    "/api/show/create": {
+      "post": {
+        "tags": [
+          "Shows"
+        ],
+        "summary": "Create Show",
+        "description": "Creates a new podcast show under the same account as the show associated with your API key.\r\nYou must provide a show image — either as a publicly accessible URL (image_url) or base64-encoded data (image_data).\r\nThe image must be square and at least 1400x1400 pixels (max 3000x3000). JPG, PNG, or GIF.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            },
+            "text/json": {
+              "schema": {}
+            },
+            "application/*+json": {
+              "schema": {}
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Show created successfully."
+          },
+          "400": {
+            "description": "Validation error or missing required fields."
+          }
+        }
+      }
+    },
+    "/api/transcript": {
+      "get": {
+        "tags": [
+          "Transcripts"
+        ],
+        "summary": "Get Transcript",
+        "description": "Returns the transcript content for an episode. Returns the best available format: SRT preferred, then VTT, then plain text.",
+        "parameters": [
+          {
+            "name": "episode_id",
+            "in": "query",
+            "description": "The episode Id to get the transcript for.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTranscriptResponse"
+                },
+                "example": {
+                  "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+                  "format": "srt",
+                  "content": "1\n00:00:00,000 --> 00:00:05,000\nWelcome to the show!\n\n2\n00:00:05,000 --> 00:00:10,000\nToday we are going to talk about podcasting."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          },
+          "404": {
+            "description": "Transcript not available."
+          }
+        }
+      }
+    },
+    "/api/hooktest": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Test Webhooks",
+        "description": "Your webhook is called with data from the latest published, or live episode. Response data always contains just 1 episode.",
+        "requestBody": {
+          "description": "Optional webhook test configuration. Provide integration_id to test a specific webhook, or omit to test all webhooks.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestWebhookRequest"
+              },
+              "example": {
+                "integration_id": "123e4567-e89b-12d3-a456-426614174000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook successfully triggered."
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    },
+    "/api/hook": {
+      "get": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "List Webhooks",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WebhookSubscriptionDto"
+                  }
+                },
+                "example": [
+                  {
+                    "integration_id": "081e5593-84c8-4838-4717-08dd620e8fb5",
+                    "url": "https://webhook.azure.net/api/Function",
+                    "action_type": "episode_published"
+                  },
+                  {
+                    "integration_id": "192f6704-95d9-4c39-8520-08dd620e8fb6",
+                    "url": "https://mywebsite.com/webhook",
+                    "action_type": "episode_live"
+                  },
+                  {
+                    "integration_id": "3a4b5c6d-7e8f-9012-3456-789abcdef012",
+                    "url": "https://automation.example.com/hooks/podhome",
+                    "action_type": "episode_published"
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Register Webhook",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscribeWebhookRequest"
+              },
+              "example": {
+                "url": "https://webhook.azure.net/api/Function",
+                "action_type": "episode_published"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscribeWebhookResponse"
+                },
+                "example": {
+                  "id": "081e5593-84c8-4838-4717-08dd620e8fb5"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Delete Webhook",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteWebhookRequest"
+              },
+              "example": {
+                "integration_id": "123e4567-e89b-12d3-a456-426614174000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook successfully deleted."
+          },
+          "400": {
+            "description": "API key missing or validation error."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddPersonRequest": {
+        "required": [
+          "episode_id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "description": "Id of the episode to add the person to.",
+            "format": "uuid"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of the person. If a person with this name already exists they will be reused."
+          },
+          "role": {
+            "type": "string",
+            "description": "Role of the person. Common values: \"host\", \"guest\", \"editor\", \"producer\".",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Optional URL to the person's image.",
+            "format": "uri",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description of the person.",
+            "nullable": true
+          },
+          "link_url": {
+            "type": "string",
+            "description": "Optional link URL (website or social profile).",
+            "format": "uri",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AddPersonResponse": {
+        "type": "object",
+        "properties": {
+          "person_id": {
+            "type": "string",
+            "description": "The Id of the person.",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the person.",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "description": "Role on this episode.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BeginUploadRequest": {
+        "required": [
+          "file_name",
+          "file_size",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Title of the episode."
+          },
+          "file_name": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Original file name including extension (e.g. \"recording.mp3\")."
+          },
+          "file_size": {
+            "type": "integer",
+            "description": "File size in bytes.",
+            "format": "int64"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional episode description (can contain rudimentary HTML).",
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "description": "Optional canonical link for the episode.",
+            "format": "uri",
+            "nullable": true
+          },
+          "publish_date": {
+            "type": "string",
+            "description": "UTC ISO-8601 future date to schedule publishing. If absent the episode is created as Draft.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "enhance_audio": {
+            "type": "boolean",
+            "description": "Indicates if you want to run Audio Enhancement on this episode. Note that Audio Enhancement is a paid feature."
+          }
+        },
+        "additionalProperties": false
+      },
+      "BeginUploadResponse": {
+        "type": "object",
+        "properties": {
+          "upload_url": {
+            "type": "string",
+            "description": "The presigned URL to upload the file to via HTTP PUT. Valid for 2 hours.",
+            "nullable": true
+          },
+          "blob_name": {
+            "type": "string",
+            "description": "The blob name — pass this to the finalize endpoint after upload.",
+            "nullable": true
+          },
+          "episode_id": {
+            "type": "string",
+            "description": "The Id of the created draft episode.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ChapterDto": {
+        "type": "object",
+        "properties": {
+          "start_time": {
+            "type": "number",
+            "description": "Start time in seconds",
+            "format": "double"
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Optional image url for the chapter",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "description": "Chapter title",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateChapterRequest": {
+        "required": [
+          "episode_id",
+          "start_time",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "description": "Id of the episode for which to create the chapter.",
+            "format": "uuid"
+          },
+          "title": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Title of the chapter."
+          },
+          "start_time": {
+            "type": "number",
+            "description": "Start time in seconds (can be fractional).",
+            "format": "double"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description for the chapter.",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Optional image URL for the chapter.",
+            "format": "uri",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "Optional URL associated with the chapter (e.g. link to resources).",
+            "format": "uri",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateChapterResponse": {
+        "type": "object",
+        "properties": {
+          "chapter_id": {
+            "type": "string",
+            "description": "The Id of the created chapter.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateClipRequest": {
+        "required": [
+          "duration",
+          "episode_id",
+          "start_time",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "description": "Id of the episode for which to create the clip.",
+            "format": "uuid"
+          },
+          "title": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Title of the clip."
+          },
+          "start_time": {
+            "type": "number",
+            "description": "Start time in seconds (can be fractional).",
+            "format": "double"
+          },
+          "duration": {
+            "type": "number",
+            "description": "Duration in seconds (can be fractional).",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateClipResponse": {
+        "type": "object",
+        "properties": {
+          "clip_id": {
+            "type": "string",
+            "description": "The Id of the created clip.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateEpisodeRequest": {
+        "required": [
+          "file_url",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "file_url": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Publicly accessible Url to a media file.",
+            "format": "uri"
+          },
+          "title": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional episode description (The description can contain rudimentary HTML like paragraphs and breaks).",
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "description": "Optional canonical link for the episode.",
+            "format": "uri",
+            "nullable": true
+          },
+          "publish_date": {
+            "type": "string",
+            "description": "UTC ISO-8601 future date to schedule publishing. If absent publishes as Draft.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "use_podhome_ai": {
+            "type": "boolean",
+            "description": "Indicates if you want Podhome AI to run. When true, Podhome AI generates a transcript and optionally other artifacts"
+          },
+          "suggest_chapters": {
+            "type": "boolean",
+            "description": "Indicates if you want Podhome AI to generate Chapters for your episode. Only works when use_podhome_ai = true."
+          },
+          "suggest_details": {
+            "type": "boolean",
+            "description": "Indicates if you want Podhome AI to generate a Description and Title Suggestions for your episode. Only works when use_podhome_ai = true."
+          },
+          "suggest_clips": {
+            "type": "boolean",
+            "description": "Indicates if you want Podhome AI to generate clips (SoundBites) for your episode. Only works when use_podhome_ai = true."
+          },
+          "enhance_audio": {
+            "type": "boolean",
+            "description": "Indicates if you want to run Audio Enhancement on this episode. Note that Audio Enhancement is a paid feature. Costs are incurred per processed minute of audio"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateEpisodeResponse": {
+        "type": "object",
+        "properties": {
+          "episodeId": {
+            "type": "string",
+            "description": "The Id of the created episode.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DeleteChapterRequest": {
+        "required": [
+          "chapter_id",
+          "episode_id"
+        ],
+        "type": "object",
+        "properties": {
+          "chapter_id": {
+            "type": "string",
+            "description": "Id of the chapter to delete.",
+            "format": "uuid"
+          },
+          "episode_id": {
+            "type": "string",
+            "description": "Id of the episode the chapter belongs to.",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DeleteClipRequest": {
+        "required": [
+          "clip_id",
+          "episode_id"
+        ],
+        "type": "object",
+        "properties": {
+          "clip_id": {
+            "type": "string",
+            "description": "Id of the clip to delete.",
+            "format": "uuid"
+          },
+          "episode_id": {
+            "type": "string",
+            "description": "Id of the episode the clip belongs to.",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DeleteEpisodeRequest": {
+        "required": [
+          "episode_id"
+        ],
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "description": "Id of the episode to delete.",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DeleteWebhookRequest": {
+        "required": [
+          "integration_id"
+        ],
+        "type": "object",
+        "properties": {
+          "integration_id": {
+            "type": "string",
+            "description": "The Id of the Webhook that you want to delete",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FinalizeUploadRequest": {
+        "required": [
+          "blob_name",
+          "episode_id",
+          "file_size"
+        ],
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "description": "The episode Id returned by begin_upload.",
+            "format": "uuid"
+          },
+          "blob_name": {
+            "minLength": 1,
+            "type": "string",
+            "description": "The blob_name returned by begin_upload."
+          },
+          "file_size": {
+            "type": "integer",
+            "description": "File size in bytes (must match the value sent to begin_upload).",
+            "format": "int64"
+          },
+          "use_podhome_ai": {
+            "type": "boolean",
+            "description": "Run Podhome AI (transcription and optionally other artifacts)."
+          },
+          "suggest_chapters": {
+            "type": "boolean",
+            "description": "Generate chapters via Podhome AI. Only works when use_podhome_ai = true."
+          },
+          "suggest_details": {
+            "type": "boolean",
+            "description": "Generate description and title suggestions via Podhome AI. Only works when use_podhome_ai = true."
+          },
+          "suggest_clips": {
+            "type": "boolean",
+            "description": "Generate clips (SoundBites) via Podhome AI. Only works when use_podhome_ai = true."
+          }
+        },
+        "additionalProperties": false
+      },
+      "FinalizeUploadResponse": {
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "description": "The Id of the episode that is now being processed.",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the episode after finalization.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetChapterResponse": {
+        "type": "object",
+        "properties": {
+          "chapter_id": {
+            "type": "string",
+            "description": "The Id of the chapter.",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "description": "Chapter title.",
+            "nullable": true
+          },
+          "start_time": {
+            "type": "number",
+            "description": "Start time in seconds.",
+            "format": "double"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description for the chapter.",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Optional image URL for the chapter.",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "Optional URL associated with the chapter.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetClipResponse": {
+        "type": "object",
+        "properties": {
+          "clip_id": {
+            "type": "string",
+            "description": "The Id of the clip.",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the clip.",
+            "nullable": true
+          },
+          "start_time": {
+            "type": "number",
+            "description": "Start time in seconds.",
+            "format": "double"
+          },
+          "duration": {
+            "type": "number",
+            "description": "Duration in seconds.",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetEpisodeResponse": {
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "description": "The Id of the episode.",
+            "nullable": true
+          },
+          "publish_date": {
+            "type": "string",
+            "description": "UTC ISO-8601 publish date of the episode (if available).",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the episode. Possible values:         \r\nDraft = 0,\r\nScheduled = 1,\r\nPublished = 2,\r\nLivePending = 3,\r\nLive = 4,\r\nLiveEnded = 5,",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the episode",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Description (show notes) of the episode\r\nInclude rendered Dynamic Text\r\nAlso includes rudimentary HTML like paragraphs, breaks and links",
+            "nullable": true
+          },
+          "episode_nr": {
+            "type": "integer",
+            "description": "The episode number. Can be null if not set.",
+            "format": "int32",
+            "nullable": true
+          },
+          "season_nr": {
+            "type": "integer",
+            "description": "The episode season number. Can be null if not set.",
+            "format": "int32",
+            "nullable": true
+          },
+          "duration": {
+            "type": "string",
+            "description": "The duration of the episode. Can be null if not available.",
+            "format": "date-span",
+            "nullable": true
+          },
+          "enclosure_url": {
+            "type": "string",
+            "description": "The url of the episode audio.\r\nCan include prefixes, like https://op3.dev/e",
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "description": "Website link for the episode",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "description": "The image url for the episode. \r\nWhen no episode image is present, this field contains the show image url",
+            "nullable": true
+          },
+          "episode_type": {
+            "type": "string",
+            "description": "The type of episode. Possible values:\r\nNormal episode = 0,\r\nTrailer = 1,\r\nBonus = 2",
+            "nullable": true
+          },
+          "alternate_enclosure_url": {
+            "type": "string",
+            "description": "Alternate enclosure URL (e.g. video version). Null if not set.",
+            "nullable": true
+          },
+          "alternate_enclosure_type": {
+            "type": "string",
+            "description": "Alternate enclosure MIME type (e.g. \"video/mp4\"). Null if not set.",
+            "nullable": true
+          },
+          "chapters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChapterDto"
+            },
+            "description": "Optional list of chapters. Each chapter contains a start time (seconds), title and optional image url.",
+            "nullable": true
+          },
+          "transcript": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TranscriptDto"
+            },
+            "description": "Optional transcript associated with the episode. Prefer returning one entry (SRT preferred).",
+            "nullable": true
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetPeopleResponse": {
+        "type": "object",
+        "properties": {
+          "person_id": {
+            "type": "string",
+            "description": "The Id of the person.",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the person.",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "description": "Role on this episode.",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Image URL of the person.",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the person.",
+            "nullable": true
+          },
+          "link_url": {
+            "type": "string",
+            "description": "Link URL of the person.",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "description": "Status: \"proposed\" or \"confirmed\".",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetShowResponse": {
+        "type": "object",
+        "properties": {
+          "show_id": {
+            "type": "string",
+            "description": "The Id of the show.",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the show.",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the show.",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Show artwork image URL.",
+            "nullable": true
+          },
+          "author": {
+            "type": "string",
+            "description": "Author name.",
+            "nullable": true
+          },
+          "language": {
+            "type": "string",
+            "description": "Show language (ISO 639 code).",
+            "nullable": true
+          },
+          "category": {
+            "type": "string",
+            "description": "Category and sub-category.",
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "description": "Show website URL.",
+            "nullable": true
+          },
+          "rss_feed_url": {
+            "type": "string",
+            "description": "RSS feed URL.",
+            "nullable": true
+          },
+          "is_explicit": {
+            "type": "boolean",
+            "description": "Whether the show is marked as explicit."
+          },
+          "medium": {
+            "type": "string",
+            "description": "Show medium (e.g. \"podcast\").",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetSingleEpisodeResponse": {
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "description": "The Id of the episode.",
+            "nullable": true
+          },
+          "publish_date": {
+            "type": "string",
+            "description": "UTC ISO-8601 publish date of the episode (if available).",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the episode. Possible values:         \r\nDraft = 0,\r\nScheduled = 1,\r\nPublished = 2,\r\nLivePending = 3,\r\nLive = 4,\r\nLiveEnded = 5,",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the episode",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Description (show notes) of the episode\r\nInclude rendered Dynamic Text\r\nAlso includes rudimentary HTML like paragraphs, breaks and links",
+            "nullable": true
+          },
+          "episode_nr": {
+            "type": "integer",
+            "description": "The episode number. Can be null if not set.",
+            "format": "int32",
+            "nullable": true
+          },
+          "season_nr": {
+            "type": "integer",
+            "description": "The episode season number. Can be null if not set.",
+            "format": "int32",
+            "nullable": true
+          },
+          "duration": {
+            "type": "string",
+            "description": "The duration of the episode. Can be null if not available.",
+            "format": "date-span",
+            "nullable": true
+          },
+          "enclosure_url": {
+            "type": "string",
+            "description": "The url of the episode audio.\r\nCan include prefixes, like https://op3.dev/e",
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "description": "Website link for the episode",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "description": "The image url for the episode. \r\nWhen no episode image is present, this field contains the show image url",
+            "nullable": true
+          },
+          "episode_type": {
+            "type": "string",
+            "description": "The type of episode. Possible values:\r\nNormal episode = 0,\r\nTrailer = 1,\r\nBonus = 2",
+            "nullable": true
+          },
+          "alternate_enclosure_url": {
+            "type": "string",
+            "description": "Alternate enclosure URL (e.g. video version). Null if not set.",
+            "nullable": true
+          },
+          "alternate_enclosure_type": {
+            "type": "string",
+            "description": "Alternate enclosure MIME type (e.g. \"video/mp4\"). Null if not set.",
+            "nullable": true
+          },
+          "chapters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChapterDto"
+            },
+            "description": "Optional list of chapters. Each chapter contains a start time (seconds), title and optional image url.",
+            "nullable": true
+          },
+          "transcript": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TranscriptDto"
+            },
+            "description": "Optional transcript associated with the episode. Prefer returning one entry (SRT preferred).",
+            "nullable": true
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonDto"
+            },
+            "nullable": true
+          },
+          "downloads": {
+            "type": "integer",
+            "description": "All-time download count for the episode.",
+            "format": "int32",
+            "nullable": true
+          },
+          "processing_status": {
+            "type": "string",
+            "description": "Processing status. Possible values: \"not_started\", \"processing\", \"complete\".",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetTranscriptResponse": {
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "description": "The episode Id.",
+            "nullable": true
+          },
+          "format": {
+            "type": "string",
+            "description": "Transcript format: \"srt\", \"vtt\", \"text\", or \"json\".",
+            "nullable": true
+          },
+          "content": {
+            "type": "string",
+            "description": "The transcript content as plain text or SRT/VTT formatted text.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModifyChapterRequest": {
+        "required": [
+          "chapter_id",
+          "episode_id"
+        ],
+        "type": "object",
+        "properties": {
+          "chapter_id": {
+            "type": "string",
+            "description": "Id of the chapter to modify.",
+            "format": "uuid"
+          },
+          "episode_id": {
+            "type": "string",
+            "description": "Id of the episode the chapter belongs to.",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "description": "Optional new title for the chapter.",
+            "nullable": true
+          },
+          "start_time": {
+            "type": "number",
+            "description": "Optional new start time in seconds (can be fractional).",
+            "format": "double",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional new description for the chapter.",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Optional new image URL for the chapter. Empty string clears the image.",
+            "format": "uri",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "Optional new URL associated with the chapter. Empty string clears the URL.",
+            "format": "uri",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModifyChapterResponse": {
+        "type": "object",
+        "properties": {
+          "chapter_id": {
+            "type": "string",
+            "description": "The Id of the modified chapter.",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "description": "Updated title.",
+            "nullable": true
+          },
+          "start_time": {
+            "type": "number",
+            "description": "Updated start time in seconds.",
+            "format": "double"
+          },
+          "description": {
+            "type": "string",
+            "description": "Updated description.",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Updated image URL.",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "Updated URL.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModifyClipRequest": {
+        "required": [
+          "clip_id",
+          "episode_id"
+        ],
+        "type": "object",
+        "properties": {
+          "clip_id": {
+            "type": "string",
+            "description": "Id of the clip to modify.",
+            "format": "uuid"
+          },
+          "episode_id": {
+            "type": "string",
+            "description": "Id of the episode the clip belongs to.",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "description": "Optional new title for the clip.",
+            "nullable": true
+          },
+          "start_time": {
+            "type": "number",
+            "description": "Optional new start time in seconds (can be fractional).",
+            "format": "double",
+            "nullable": true
+          },
+          "duration": {
+            "type": "number",
+            "description": "Optional new duration in seconds (can be fractional).",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModifyClipResponse": {
+        "type": "object",
+        "properties": {
+          "clip_id": {
+            "type": "string",
+            "description": "The Id of the modified clip.",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "description": "Updated title.",
+            "nullable": true
+          },
+          "start_time": {
+            "type": "number",
+            "description": "Updated start time in seconds.",
+            "format": "double"
+          },
+          "duration": {
+            "type": "number",
+            "description": "Updated duration in seconds.",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModifyEpisodeRequest": {
+        "required": [
+          "episode_id"
+        ],
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "description": "Id of the episode to modify.",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "description": "Optional new title for the episode (max 2048 characters).",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional new description (can contain HTML like paragraphs and breaks).",
+            "nullable": true
+          },
+          "episode_nr": {
+            "type": "integer",
+            "description": "Optional episode number (must be greater than 0).",
+            "format": "int32",
+            "nullable": true
+          },
+          "season_nr": {
+            "type": "integer",
+            "description": "Optional season number (must be greater than 0).",
+            "format": "int32",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Optional image URL (publicly accessible HTTP/HTTPS URL). Empty string clears the image.",
+            "format": "uri",
+            "nullable": true
+          },
+          "image_data": {
+            "type": "string",
+            "description": "Optional base64 encoded image data. Supports data URL format (e.g., \"data:image/png;base64,...\") or raw base64 string.",
+            "nullable": true
+          },
+          "alternate_enclosure_url": {
+            "type": "string",
+            "description": "Optional alternate enclosure URL (e.g. a video version). Empty string clears the alternate enclosure. MIME type is auto-detected from extension if alternate_enclosure_type is omitted.",
+            "format": "uri",
+            "nullable": true
+          },
+          "alternate_enclosure_type": {
+            "type": "string",
+            "description": "Optional MIME type for the alternate enclosure (e.g. \"video/mp4\", \"audio/aac\"). Auto-detected from URL extension if omitted.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModifyEpisodeResponse": {
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "description": "The Id of the modified episode.",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "description": "Updated title of the episode.",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Updated description of the episode.",
+            "nullable": true
+          },
+          "episode_nr": {
+            "type": "integer",
+            "description": "Updated episode number (null if not set).",
+            "format": "int32",
+            "nullable": true
+          },
+          "season_nr": {
+            "type": "integer",
+            "description": "Updated season number (null if not set).",
+            "format": "int32",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Updated image URL (null if not set).",
+            "nullable": true
+          },
+          "alternate_enclosure_url": {
+            "type": "string",
+            "description": "Alternate enclosure URL (null if not set).",
+            "nullable": true
+          },
+          "alternate_enclosure_type": {
+            "type": "string",
+            "description": "Alternate enclosure MIME type (null if not set).",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PersonDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the person",
+            "nullable": true
+          },
+          "image": {
+            "type": "string",
+            "description": "Url of the person image. Can be an empty string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the person",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "A Public URL to the person's website or social profile",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "description": "Role of the person, like guest, host and others",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RemovePersonRequest": {
+        "required": [
+          "episode_id",
+          "person_id"
+        ],
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "description": "Id of the episode to remove the person from.",
+            "format": "uuid"
+          },
+          "person_id": {
+            "type": "string",
+            "description": "Id of the person to remove from the episode.",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ScheduleEpisodeRequest": {
+        "required": [
+          "episode_id"
+        ],
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "publish_date": {
+            "type": "string",
+            "description": "Future UTC ISO-8601 publish date. Ignored if publish_now = true.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "publish_now": {
+            "type": "boolean",
+            "description": "Publish immediately (overrides publish_date)."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ScheduleEpisodeResponse": {
+        "type": "object",
+        "properties": {
+          "episode_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "publish_date": {
+            "type": "string",
+            "description": "Scheduled or published date.",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the episode. Possible values:         \r\nDraft = 0,\r\nScheduled = 1,\r\nPublished = 2,\r\nLivePending = 3,\r\nLive = 4,\r\nLiveEnded = 5,",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SubscribeWebhookRequest": {
+        "required": [
+          "action_type",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Webhook Endpoint Url",
+            "format": "uri"
+          },
+          "action_type": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Possible values for action_type:\r\n            \"episode_published\" (register webhook for when episode is published)\r\n            \"episode_live\" (register webhook for when episode live session starts)"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SubscribeWebhookResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The Id of the created Webhook. Use the id to test or remove your webhook registration",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TestWebhookRequest": {
+        "type": "object",
+        "properties": {
+          "integration_id": {
+            "type": "string",
+            "description": "The Id of the Webhook. Optional, if not provided all webhooks will be tested.",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TranscriptDto": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string",
+            "description": "Transcript language (e.g. en-us)",
+            "nullable": true
+          },
+          "transcript_url": {
+            "type": "string",
+            "description": "Public URL to the transcript file",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WebhookSubscriptionDto": {
+        "type": "object",
+        "properties": {
+          "integration_id": {
+            "type": "string",
+            "description": "Webhook Id",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "description": "Webhook Endpoint Url",
+            "nullable": true
+          },
+          "action_type": {
+            "type": "string",
+            "description": "possible values for action_type:\r\n           \"episode_published\" (webhook for when episode is published)\r\n           \"episode_live\" (webhook for when episode live session starts)",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "An array of active webhook subscription."
+      }
+    },
+    "securitySchemes": {
+      "ApiKey": {
+        "type": "apiKey",
+        "description": "Provide your show API key in the X-API-KEY header.",
+        "name": "X-API-KEY",
+        "in": "header"
+      }
+    }
+  },
+  "security": [
+    {
+      "ApiKey": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Webhooks",
+      "description": "Manage webhook subscriptions to receive real-time notifications when episodes are published or live sessions start. Webhooks allow you to integrate Podhome with your own systems and automate workflows. Note that our requests to your webhook time out after 60 seconds."
+    },
+    {
+      "name": "Episodes",
+      "description": "Create, schedule, and manage podcast episodes programmatically. Upload audio files, set metadata, and publish episodes directly through the API."
+    },
+    {
+      "name": "Clips (SoundBites)",
+      "description": "Create audio clips (soundbites) from your episodes. Clips are short segments that can be used for promotion and social media sharing."
+    },
+    {
+      "name": "Shows",
+      "description": "Create new podcast shows. Provide show metadata including title, description, artwork image, language, and Apple Podcasts category. The new show is created under the same account as the show associated with your API key."
+    },
+    {
+      "name": "Analytics",
+      "description": "Retrieve podcast analytics data including download counts, unique listeners, and breakdowns by podcast app, country, device, operating system, time of day, and episode. Supports time-series trends for growth analysis."
+    }
+  ]
+}

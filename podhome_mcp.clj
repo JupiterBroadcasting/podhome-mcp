@@ -204,7 +204,7 @@
       {:episodeId (:episodeId (:data resp))
        :message "Episode created as draft. Poll get-episode for processing status."})))
 
-(defn tool-modify-episode [{:keys [episode_id title description episode_nr season_nr image_url]}]
+(defn tool-modify-episode [{:keys [episode_id title description episode_nr season_nr image_url alternate_enclosure_url alternate_enclosure_type]}]
   (when (str/blank? episode_id) (throw (ex-info "episode_id is required" {:type :bad-request})))
   (let [body (into {} (filter (fn [[_ v]] (some? v)))
                    {:episode_id episode_id
@@ -212,7 +212,9 @@
                     :description description
                     :episode_nr episode_nr
                     :season_nr season_nr
-                    :image_url image_url})
+                    :image_url image_url
+                    :alternate_enclosure_url alternate_enclosure_url
+                    :alternate_enclosure_type alternate_enclosure_type})
         resp (api-post "/api/modify_episode" body)]
     (if (:error resp)
       resp
@@ -231,11 +233,18 @@
        :status (:status (:data resp))
        :message (if publish_now "Episode published!" "Episode scheduled!")})))
 
-(defn tool-begin-upload [{:keys [title file_name file_size]}]
+(defn tool-begin-upload [{:keys [title file_name file_size description link publish_date enhance_audio]}]
   (when (str/blank? title) (throw (ex-info "title is required" {:type :bad-request})))
   (when (str/blank? file_name) (throw (ex-info "file_name is required" {:type :bad-request})))
   (when (nil? file_size) (throw (ex-info "file_size is required" {:type :bad-request})))
-  (let [body {:title title :file_name file_name :file_size file_size}
+  (let [body (into {} (filter (fn [[_ v]] (some? v)))
+                   {:title title
+                    :file_name file_name
+                    :file_size file_size
+                    :description description
+                    :link link
+                    :publish_date publish_date
+                    :enhance_audio enhance_audio})
         resp (api-post "/api/begin_upload" body)]
     (if (:error resp)
       resp
@@ -244,14 +253,17 @@
        :episode_id (:episode_id (:data resp))
        :message "Upload URL obtained. PUT file to upload_url, then call finalize-upload."})))
 
-(defn tool-finalize-upload [{:keys [episode_id blob_name file_size use_podhome_ai]}]
+(defn tool-finalize-upload [{:keys [episode_id blob_name file_size use_podhome_ai suggest_chapters suggest_details suggest_clips]}]
   (when (str/blank? episode_id) (throw (ex-info "episode_id is required" {:type :bad-request})))
   (when (str/blank? blob_name) (throw (ex-info "blob_name is required" {:type :bad-request})))
   (let [body (into {} (filter (fn [[_ v]] (some? v)))
                    {:episode_id episode_id
                     :blob_name blob_name
                     :file_size file_size
-                    :use_podhome_ai use_podhome_ai})
+                    :use_podhome_ai use_podhome_ai
+                    :suggest_chapters suggest_chapters
+                    :suggest_details suggest_details
+                    :suggest_clips suggest_clips})
         resp (api-post "/api/finalize_upload" body)]
     (if (:error resp)
       resp
@@ -329,6 +341,24 @@
     (if (:error resp)
       resp
       {:message (str "Chapter " chapter_id " deleted")})))
+
+;; Chapters - List
+
+(defn tool-get-chapters [{:keys [episode_id limit offset]}]
+  (when (str/blank? episode_id) (throw (ex-info "episode_id is required" {:type :bad-request})))
+  (let [limit (min (or limit 50) 100)
+        offset (or offset 0)
+        resp (api-get "/api/chapters" {:episode_id episode_id})]
+    (if (:error resp)
+      resp
+      (let [all (:data resp)
+            total (count all)
+            page (->> all (drop offset) (take limit))]
+        {:chapters page
+         :total total
+         :offset offset
+         :limit limit
+         :has_more (< (+ offset limit) total)}))))
 
 ;; Clips
 
@@ -438,14 +468,16 @@
                   :required ["title"]}}
 
    {:name "modify-episode"
-    :description "Update episode metadata. Only include fields to change. Description accepts HTML."
+    :description "Update episode metadata. Add alternate audio/video with alternate_enclosure_url. Only include fields to change. Description accepts HTML."
     :inputSchema {:type "object"
                   :properties {:episode_id {:type "string" :description "Episode UUID (required)"}
                                :title {:type "string" :description "Episode title"}
                                :description {:type "string" :description "Show notes (HTML)"}
                                :episode_nr {:type "integer" :description "Episode number"}
                                :season_nr {:type "integer" :description "Season number"}
-                               :image_url {:type "string" :description "Cover image URL"}}
+                               :image_url {:type "string" :description "Cover image URL"}
+                               :alternate_enclosure_url {:type "string" :description "Alternate audio/video URL (e.g. video version)"}
+                               :alternate_enclosure_type {:type "string" :description "MIME type for alternate (e.g. video/mp4, audio/aac)"}}
                   :required ["episode_id"]}}
 
    {:name "schedule-episode"
@@ -457,11 +489,15 @@
                   :required ["episode_id"]}}
 
    {:name "begin-upload"
-    :description "Start a direct upload. Returns upload_url, blob_name, episode_id. PUT file to upload_url, then call finalize-upload."
+    :description "Start a direct upload. ⚠️ BROKEN - returns 400 error. Use create-episode with file_url instead. Returns upload_url, blob_name, episode_id."
     :inputSchema {:type "object"
                   :properties {:title {:type "string" :description "Episode title"}
                                :file_name {:type "string" :description "Filename e.g. recording.mp3"}
-                               :file_size {:type "integer" :description "File size in bytes"}}
+                               :file_size {:type "integer" :description "File size in bytes"}
+                               :description {:type "string" :description "Episode description (HTML allowed)"}
+                               :link {:type "string" :description "Canonical link URL"}
+                               :publish_date {:type "string" :description "ISO-8601 UTC datetime to schedule"}
+                               :enhance_audio {:type "boolean" :description "Run Audio Enhancement (paid feature)"}}
                   :required ["title" "file_name" "file_size"]}}
 
    {:name "finalize-upload"
@@ -470,7 +506,10 @@
                   :properties {:episode_id {:type "string" :description "Episode UUID from begin-upload"}
                                :blob_name {:type "string" :description "blob_name from begin-upload"}
                                :file_size {:type "integer" :description "File size in bytes"}
-                               :use_podhome_ai {:type "boolean" :description "Run Podhome AI"}}
+                               :use_podhome_ai {:type "boolean" :description "Run Podhome AI (transcript, chapters, clips)"}
+                               :suggest_chapters {:type "boolean" :description "Generate chapters via AI"}
+                               :suggest_details {:type "boolean" :description "Generate description/title via AI"}
+                               :suggest_clips {:type "boolean" :description "Generate soundbite clips via AI"}}
                   :required ["episode_id" "blob_name"]}}
 
    {:name "upload-and-create"
@@ -517,6 +556,14 @@
                   :properties {:episode_id {:type "string" :description "Episode UUID"}
                                :chapter_id {:type "string" :description "Chapter UUID"}}
                   :required ["episode_id" "chapter_id"]}}
+
+   {:name "get-chapters"
+    :description "List chapters for an episode. Paginate with limit/offset."
+    :inputSchema {:type "object"
+                  :properties {:episode_id {:type "string" :description "Episode UUID"}
+                               :limit {:type "integer" :description "Max chapters to return (default 50, max 100)"}
+                               :offset {:type "integer" :description "Skip N chapters (for pagination)"}}
+                  :required ["episode_id"]}}
 
    ;; Clips
    {:name "list-clips"
@@ -587,6 +634,7 @@
     "create-chapter" (tool-create-chapter args)
     "modify-chapter" (tool-modify-chapter args)
     "delete-chapter" (tool-delete-chapter args)
+    "get-chapters" (tool-get-chapters args)
     "list-clips" (tool-list-clips args)
     "create-clip" (tool-create-clip args)
     "modify-clip" (tool-modify-clip args)
