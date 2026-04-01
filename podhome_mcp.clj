@@ -132,6 +132,22 @@
     (catch Exception e
       {:error true :message (.getMessage e)})))
 
+;; ─── Utilities ──────────────────────────────────────────────────────────────
+
+(defn strip-html [s]
+  (when-not (str/blank? s)
+    (-> s
+        (str/replace #"<[^>]+>" " ")
+        (str/replace #"&\w+;" " ")
+        (str/replace #"\s+" " ")
+        str/trim)))
+
+(def episode-slim-keys
+  [:episode_id :title :status :publish_date :episode_nr :season_nr :duration])
+
+(defn slim-episode [ep]
+  (select-keys ep episode-slim-keys))
+
 ;; ─── Tool Implementations ──────────────────────────────────────────────────
 
 (defn tool-get-show []
@@ -140,13 +156,25 @@
       resp
       (:data resp))))
 
-(defn tool-list-episodes [{:keys [status]}]
-  (let [params (when status {:status status})
+(defn tool-list-episodes [{:keys [status limit offset fields]}]
+  (let [limit (min (or limit 20) 100)
+        offset (or offset 0)
+        full? (= fields "full")
+        params (when status {:status status})
         resp (api-get "/api/episodes" params)]
     (if (:error resp)
       resp
-      {:episodes (:data resp)
-       :count (count (:data resp))})))
+      (let [all (:data resp)
+            total (count all)
+            page (->> all
+                      (drop offset)
+                      (take limit))
+            episodes (if full? page (map slim-episode page))]
+        {:episodes episodes
+         :total total
+         :offset offset
+         :limit limit
+         :has_more (< (+ offset limit) total)}))))
 
 (defn tool-get-episode [{:keys [episode_id]}]
   (when (str/blank? episode_id) (throw (ex-info "episode_id is required" {:type :bad-request})))
@@ -304,12 +332,21 @@
 
 ;; Clips
 
-(defn tool-list-clips [{:keys [episode_id]}]
+(defn tool-list-clips [{:keys [episode_id limit offset]}]
   (when (str/blank? episode_id) (throw (ex-info "episode_id is required" {:type :bad-request})))
-  (let [resp (api-get "/api/clips" {:episode_id episode_id})]
+  (let [limit (min (or limit 50) 100)
+        offset (or offset 0)
+        resp (api-get "/api/clips" {:episode_id episode_id})]
     (if (:error resp)
       resp
-      {:clips (:data resp)})))
+      (let [all (:data resp)
+            total (count all)
+            page (->> all (drop offset) (take limit))]
+        {:clips page
+         :total total
+         :offset offset
+         :limit limit
+         :has_more (< (+ offset limit) total)}))))
 
 (defn tool-create-clip [{:keys [episode_id title start_time duration]}]
   (when (str/blank? episode_id) (throw (ex-info "episode_id is required" {:type :bad-request})))
@@ -371,9 +408,12 @@
     :inputSchema {:type "object" :properties {} :required []}}
 
    {:name "list-episodes"
-    :description "List podcast episodes. Filter by status: draft, scheduled, published."
+    :description "List podcast episodes. Returns slim fields by default (id, title, status, date). Use fields=\"full\" for all data. Paginate with limit/offset."
     :inputSchema {:type "object"
-                  :properties {:status {:type "string" :description "Filter by status: 0=draft, 1=scheduled, 2=published"}}
+                  :properties {:status {:type "string" :description "Filter by status: 0=draft, 1=scheduled, 2=published"}
+                               :limit {:type "integer" :description "Max episodes to return (default 20, max 100)"}
+                               :offset {:type "integer" :description "Skip N episodes (for pagination)"}
+                               :fields {:type "string" :description "Set to \"full\" for all fields including description, chapters, etc"}}
                   :required []}}
 
    {:name "get-episode"
@@ -480,9 +520,11 @@
 
    ;; Clips
    {:name "list-clips"
-    :description "List clips (soundbites) for an episode."
+    :description "List clips (soundbites) for an episode. Paginate with limit/offset."
     :inputSchema {:type "object"
-                  :properties {:episode_id {:type "string" :description "Episode UUID"}}
+                  :properties {:episode_id {:type "string" :description "Episode UUID"}
+                               :limit {:type "integer" :description "Max clips to return (default 50, max 100)"}
+                               :offset {:type "integer" :description "Skip N clips (for pagination)"}}
                   :required ["episode_id"]}}
 
    {:name "create-clip"
